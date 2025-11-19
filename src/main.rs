@@ -1,32 +1,28 @@
 #![feature(more_qualified_paths)]
 use std::fs::File;
-use std::time::Duration;
-use std::{ffi::CString, thread::sleep};
+use std::ffi::CString;
 use std::os::fd::BorrowedFd;
 
 use memmap2::{MmapMut, MmapOptions};
 
 use wayland_client::{
-    Connection, Dispatch, EventQueue, Proxy, backend::ObjectId, delegate_noop, protocol::{
-        wl_buffer::{self, WlBuffer},
+    Connection, Dispatch, EventQueue, Proxy, delegate_noop, protocol::{
+        wl_buffer::WlBuffer,
         wl_compositor::{self, WlCompositor},
-        wl_registry, wl_shell,
+        wl_registry,
         wl_shm::{self, Format, WlShm},
         wl_shm_pool::{self, WlShmPool},
-        wl_surface::{self, Event, WlSurface},
+        wl_surface::WlSurface,
     }
 };
 
-use libc::{O_CREAT, O_RDWR, PROT_READ, PROT_WRITE, S_IROTH, S_IRWXU, ftruncate, mmap, shm_open};
+use libc::{O_CREAT, O_RDWR, S_IROTH, S_IRWXU, ftruncate, shm_open};
 
-use wayland_protocols::xdg::{
-    self,
-    shell::client::{
-        xdg_surface::{self, XdgSurface},
+use wayland_protocols::xdg::shell::client::{
+        xdg_surface::XdgSurface,
         xdg_toplevel::XdgToplevel,
         xdg_wm_base::{self, XdgWmBase},
-    },
-};
+    };
 
 const WIDTH: i32 = 960;
 const HEIGHT: i32 = 540;
@@ -53,7 +49,7 @@ impl Dispatch<wl_registry::WlRegistry, ()> for State {
         proxy: &wl_registry::WlRegistry,
         event: <wl_registry::WlRegistry as wayland_client::Proxy>::Event,
         data: &(),
-        conn: &Connection,
+        _conn: &Connection,
         qhandle: &wayland_client::QueueHandle<Self>,
     ) {
         // Iterate over the globals given by the registry.
@@ -96,7 +92,7 @@ impl Dispatch<WlShm, ()> for State {
         proxy: &WlShm,
         event: <WlShm as wayland_client::Proxy>::Event,
         data: &(),
-        conn: &Connection,
+        _conn: &Connection,
         qhandle: &wayland_client::QueueHandle<Self>,
     ) {
         if let <WlShm as Proxy>::Event::Format { format } = event {
@@ -135,10 +131,10 @@ impl Dispatch<WlShm, ()> for State {
                     BorrowedFd::borrow_raw(fildes)
                 };
 
-                let mut shm_file = File::from(shm_fd.try_clone_to_owned().unwrap()); // Converts borrowed
+                let shm_file = File::from(shm_fd.try_clone_to_owned().unwrap()); // Converts borrowed
                 // to owned. Are there problems with this?
 
-                let mut mmap = unsafe {
+                let mmap = unsafe {
                     // SAFETY: This effectively creates a memory map from a raw
                     // pointer. As above, as long as the compositor does not
                     // mutate the underlying shared memory pool, mutations
@@ -163,12 +159,12 @@ impl Dispatch<WlShm, ()> for State {
 
 impl Dispatch<WlBuffer, ()> for State {
     fn event(
-        state: &mut Self,
-        proxy: &WlBuffer,
-        event: <WlBuffer as Proxy>::Event,
-        data: &(),
-        conn: &Connection,
-        qhandle: &wayland_client::QueueHandle<Self>,
+        _state: &mut Self,
+        _proxy: &WlBuffer,
+        _event: <WlBuffer as Proxy>::Event,
+        _data: &(),
+        _conn: &Connection,
+        _qhandle: &wayland_client::QueueHandle<Self>,
     ) {
     }
 }
@@ -176,11 +172,11 @@ impl Dispatch<WlBuffer, ()> for State {
 impl Dispatch<XdgWmBase, ()> for State {
     fn event(
         state: &mut Self,
-        proxy: &XdgWmBase,
+        _proxy: &XdgWmBase,
         event: <XdgWmBase as Proxy>::Event,
-        data: &(),
-        conn: &Connection,
-        qhandle: &wayland_client::QueueHandle<Self>,
+        _data: &(),
+        _conn: &Connection,
+        _qhandle: &wayland_client::QueueHandle<Self>,
     ) {
         if let xdg_wm_base::Event::Ping { serial } = event {
             state.wm_base.as_ref().unwrap().pong(serial); // Ok to unwrap as a ping won't be recieved until
@@ -194,12 +190,12 @@ impl Dispatch<XdgWmBase, ()> for State {
 
 impl Dispatch<XdgSurface, ()> for State {
     fn event(
-        state: &mut Self,
+        _state: &mut Self,
         proxy: &XdgSurface,
         event: <XdgSurface as Proxy>::Event,
-        data: &(),
-        conn: &Connection,
-        qhandle: &wayland_client::QueueHandle<Self>,
+        _data: &(),
+        _conn: &Connection,
+        _qhandle: &wayland_client::QueueHandle<Self>,
     ) {
         if let <XdgSurface as Proxy>::Event::Configure { serial } = event {
             proxy.ack_configure(serial);
@@ -209,17 +205,17 @@ impl Dispatch<XdgSurface, ()> for State {
 
 impl Dispatch<XdgToplevel, ()> for State {
     fn event(
-        state: &mut Self,
-        proxy: &XdgToplevel,
+        _state: &mut Self,
+        _proxy: &XdgToplevel,
         event: <XdgToplevel as Proxy>::Event,
-        data: &(),
-        conn: &Connection,
-        qhandle: &wayland_client::QueueHandle<Self>,
+        _data: &(),
+        _conn: &Connection,
+        _qhandle: &wayland_client::QueueHandle<Self>,
     ) {
         if let <XdgToplevel as Proxy>::Event::Configure {
-            width,
-            height,
-            states,
+            width: _,
+            height: _,
+            states: _,
         } = event
         {
             // state.xdg_surface.unwrap().ack_configure(serial);
@@ -231,12 +227,12 @@ impl Dispatch<XdgToplevel, ()> for State {
 
 impl Dispatch<WlSurface, ()> for State {
     fn event(
-        state: &mut Self,
-        proxy: &WlSurface,
-        event: <WlSurface as Proxy>::Event,
-        data: &(),
-        conn: &Connection,
-        qhandle: &wayland_client::QueueHandle<Self>,
+        _state: &mut Self,
+        _proxy: &WlSurface,
+        _event: <WlSurface as Proxy>::Event,
+        _data: &(),
+        _conn: &Connection,
+        _qhandle: &wayland_client::QueueHandle<Self>,
     ) {
     }
 }
@@ -305,7 +301,7 @@ fn main() {
                // FIX: 3 channels won't work, even with Xrgb8888 for some reason
                // TODO: Update for more channels
 
-            let size: i32 = (WIDTH * HEIGHT * channel_count * 2).try_into().unwrap();
+            let _size: i32 = (WIDTH * HEIGHT * channel_count * 2).try_into().unwrap();
 
             let buffer = shm_pool.create_buffer(
                 0,
