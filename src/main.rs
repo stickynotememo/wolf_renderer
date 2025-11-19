@@ -1,7 +1,10 @@
 #![feature(more_qualified_paths)]
+use std::fs::File;
 use std::time::Duration;
 use std::{ffi::CString, thread::sleep};
 use std::os::fd::BorrowedFd;
+
+use memmap2::{MmapMut, MmapOptions};
 
 use wayland_client::{
     Connection, Dispatch, EventQueue, Proxy, backend::ObjectId, delegate_noop, protocol::{
@@ -31,7 +34,7 @@ const HEIGHT: i32 = 540;
 #[derive(Debug)]
 struct State {
     exit: bool,
-    ready: bool,
+    _ready: bool,
     compositor: Option<WlCompositor>,
     surface: Option<WlSurface>,
     shm: Option<WlShm>,
@@ -41,6 +44,7 @@ struct State {
     xdg_surface: Option<XdgSurface>,
     toplevel_surface: Option<XdgToplevel>,
     pool: Option<WlShmPool>,
+    memory_map: Option<MmapMut>,
 }
 
 impl Dispatch<wl_registry::WlRegistry, ()> for State {
@@ -120,6 +124,8 @@ impl Dispatch<WlShm, ()> for State {
                     // Data races should not be possible as the compositor will
                     // not modify the buffer. (Non owners do not have write
                     // permissions)
+                    //
+                    // TODO: Use shared_memory and implement FD return
 
                     let fildes = shm_open(name.as_ptr(), O_RDWR | O_CREAT, S_IRWXU | S_IROTH);
                     if fildes <= 0 {
@@ -129,6 +135,22 @@ impl Dispatch<WlShm, ()> for State {
                     BorrowedFd::borrow_raw(fildes)
                 };
 
+                let mut shm_file = File::from(shm_fd.try_clone_to_owned().unwrap()); // Converts borrowed
+                // to owned. Are there problems with this?
+
+                let mut mmap = unsafe {
+                    // SAFETY: This effectively creates a memory map from a raw
+                    // pointer. As above, as long as the compositor does not
+                    // mutate the underlying shared memory pool, mutations
+                    // should be safe and not cause data races [undefined.race]
+                    // https://doc.rust-lang.org/reference/behavior-considered-undefined.html#r-undefined.alias
+                    MmapOptions::new()
+                        .len(size as usize)
+                        .map_mut(&shm_file)
+                        .unwrap()
+                };
+
+                state.memory_map = Some(mmap);
                 let shm_pool = proxy.create_pool(shm_fd, size.try_into().unwrap(), qhandle, *data);
                 // TODO: Move drawing logic to event loop (double flush)
                 state.pool = Some(shm_pool);
@@ -228,16 +250,17 @@ fn main() {
 
     let mut state = State {
         exit: false,
-        ready: false,
+        _ready: false,
+        formats: vec![],
         compositor: None,
         surface: None,
         shm: None,
-        formats: vec![],
         buffer: None,
         wm_base: None,
         xdg_surface: None,
         toplevel_surface: None,
         pool: None,
+        memory_map: None
     };
 
     let mut event_queue: EventQueue<State> = conn.new_event_queue();
@@ -266,33 +289,29 @@ fn main() {
                 surface.commit();
             };
         }
-        state.ready = if let (Some(_), Some(_), Some(_), Some(_), Some(_)) = (
-            &state.compositor,
-            &state.surface,
-            &state.shm,
-            &state.buffer,
-            &state.wm_base,
-        ) {
-            true
-        } else {
-            false
-        };
 
         if let Some(shm_pool) = &state.pool {
-            let channels: i32 = if state.formats.contains(&Format::Xrgb8888) {
-                4
+            let format = if state.formats.contains(&Format::Xrgb8888) {
+                Format::Xrgb8888
             } else {
-                4
-            }; // we know that the supported formats are only the two above, so we can safely assume that any format which is not Xrgb8888 is Argb8888, requiring 4 channels.
+                Format::Argb8888
+            };
+
+            let channel_count = match format {
+                Format::Xrgb8888 => 4,
+                Format::Argb8888 => 4,
+                _ => unimplemented!("Other formats not supported")
+            };
                // FIX: 3 channels won't work, even with Xrgb8888 for some reason
                // TODO: Update for more channels
 
-            let size: i32 = (WIDTH * HEIGHT * channels * 2).try_into().unwrap();
+            let size: i32 = (WIDTH * HEIGHT * channel_count * 2).try_into().unwrap();
+
             let buffer = shm_pool.create_buffer(
                 0,
                 WIDTH.try_into().unwrap(),
                 HEIGHT.try_into().unwrap(),
-                (WIDTH * channels).try_into().unwrap(),
+                (WIDTH * channel_count).try_into().unwrap(),
                 if state.formats.contains(&Format::Xrgb8888) {
                     Format::Xrgb8888
                 } else {
@@ -304,10 +323,32 @@ fn main() {
             state.buffer = Some(buffer.clone());
         }
 
-        if state.ready {
-            dbg!("ready");
-            sleep(Duration::from_secs(2));
-            return;
+        state._ready = if let (Some(_), Some(_), Some(_), Some(_), Some(_), Some(mmap)) = (
+            &state.compositor,
+            &state.surface,
+            &state.shm,
+            &state.buffer,
+            &state.wm_base,
+            &mut state.memory_map,
+        ) {
+            draw(mmap);
+            true
+        } else {
+            false
         };
     }
+}
+
+fn draw(memory_map: &mut MmapMut) { // TODO: WlCallback on frame
+    let mut pixel: u64 = 0;
+
+    for byte in &mut **memory_map {
+        let pixel_offset = (pixel % 4) as u8;
+        pixel += 1;
+
+        *byte = match pixel_offset {
+            1 => 0,
+            _ => 255
+        };
+    };
 }
