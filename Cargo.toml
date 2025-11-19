@@ -1,0 +1,11 @@
+[package]
+name = "wolf_render"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+libc = "0.2.177"
+memfile = "0.3.2"
+shared_memory = "0.12.4"
+wayland-client = "0.31"
+wayland-protocols = { version = "0.32.9", features = ["client"] }
