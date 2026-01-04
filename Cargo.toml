@@ -8,5 +8,7 @@ libc = "0.2.177"
 memfile = "0.3.2"
 memmap2 = "0.9.9"
 shared_memory = "0.12.4"
+softbuffer = "0.4.8"
 wayland-client = "0.31"
 wayland-protocols = { version = "0.32.9", features = ["client"] }
+winit = "0.30.12"
