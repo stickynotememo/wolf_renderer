@@ -8,7 +8,7 @@ use super::*;
 /////
 #[test]
 fn origin_test() {
-    let zero_point = Point3D (0.0, 0.0, 0.0);
+    let zero_point = Point3D(0.0, 0.0, 0.0);
 
     let result = zero_point.to_screen_coordinates();
 
@@ -18,7 +18,7 @@ fn origin_test() {
 
 #[test]
 fn endpoint_test() {
-    let end_point = Point3D (f64::MAX, f64::MAX, f64::MAX);
+    let end_point = Point3D(f64::MAX, f64::MAX, f64::MAX);
 
     let result = end_point.to_screen_coordinates();
 
