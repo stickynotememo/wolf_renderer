@@ -1,6 +1,6 @@
 use crate::consts::*;
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub struct Point2D(pub f64, pub f64);
 impl Point2D {
     pub fn to_canvas_coordinates(&self) -> Point3D {
@@ -18,7 +18,7 @@ impl Point2D {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub struct Point3D(pub f64, pub f64, pub f64);
 impl Point3D {
     pub fn to_screen_coordinates(&self) -> Point2D {

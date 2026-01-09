@@ -49,15 +49,14 @@ fn main() {
 
     let mut scene = vec![Object {
         vertices: vec![
-            // Point3D(0.0, f64::MAX / 2.0, 1.0),
-            // Point3D(f64::MAX / 2.0, -f64::MAX / 2.0, 1.0),
-            // Point3D(-f64::MAX / 2.0, -f64::MAX / 2.0, 1.0),
-            // Point3D(0.0, 0.0, f64::MAX / 2.0),
-            // Point3D(0.0, 0.0, 0.0),
-            Point3D(f64::MAX / 2.0, f64::MAX / 2.0, 0.0)
+            Point3D(0.0, f64::MAX / 2.0, 0.0),
+            Point3D(f64::MAX / 2.0, -f64::MAX / 2.0, 0.0),
+            Point3D(-f64::MAX / 2.0, -f64::MAX / 2.0, 0.0),
         ],
         edges: vec![
-            (Point3D(0.0, 0.0, 0.0), Point3D(f64::MAX / 2.0, f64::MAX / 2.0, 0.0))
+            (Point3D(0.0, f64::MAX / 2.0, 0.0), Point3D(f64::MAX / 2.0, -f64::MAX / 2.0, 0.0)),
+            (Point3D(f64::MAX / 2.0, -f64::MAX / 2.0, 0.0), Point3D(-f64::MAX / 2.0, -f64::MAX / 2.0, 0.0)),
+            (Point3D(-f64::MAX / 2.0, -f64::MAX / 2.0, 0.0), Point3D(0.0, f64::MAX / 2.0, 0.0))
         ],
     }];
 
