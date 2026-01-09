@@ -18,7 +18,7 @@ use consts::*;
 
 use core::f64; use std::{num::NonZeroU32, u32};
 
-use softbuffer::{Context, Rect, Surface};
+use softbuffer::{Buffer, Context, Rect, Surface};
 use winit::{self, event_loop::EventLoop, window::Window};
 
 fn main() {
@@ -45,20 +45,25 @@ fn main() {
         )
         .expect("Couldn't resize surface");
 
-    let mut t: u128 = 0;
+    let mut t: u128 = 1;
 
-    let scene = vec![Object {
+    let mut scene = vec![Object {
         vertices: vec![
-            Point3D(0.0, f64::MAX / 2.0, 0.0),
-            Point3D(f64::MAX / 2.0, -f64::MAX / 2.0, 0.0),
-            Point3D(-f64::MAX / 2.0, -f64::MAX / 2.0, 0.0),
+            // Point3D(0.0, f64::MAX / 2.0, 1.0),
+            // Point3D(f64::MAX / 2.0, -f64::MAX / 2.0, 1.0),
+            // Point3D(-f64::MAX / 2.0, -f64::MAX / 2.0, 1.0),
             // Point3D(0.0, 0.0, f64::MAX / 2.0),
+            // Point3D(0.0, 0.0, 0.0),
+            Point3D(f64::MAX / 2.0, f64::MAX / 2.0, 0.0)
         ],
-        edges: vec![],
+        edges: vec![
+            (Point3D(0.0, 0.0, 0.0), Point3D(f64::MAX / 2.0, f64::MAX / 2.0, 0.0))
+        ],
     }];
 
     loop {
         let mut sbuffer = surface.buffer_mut().expect("Couldn't create buffer");
+        // set_scene(t, &mut scene);
         render(t, &scene, &mut *sbuffer);
         t += 1;
 
