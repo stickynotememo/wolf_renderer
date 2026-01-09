@@ -7,8 +7,8 @@ type Subpixels = (u8, u8, u8);
 fn to_rgb((red, green, blue): Subpixels) -> Pixel {
     let mut pixel: u32 = 0;
     pixel += blue as u32;
-    pixel += 256 * green as u32;
-    pixel += 256 * 256 * red as u32;
+    pixel += (green as u32) << 8;
+    pixel += (red as u32) << 16;
 
     pixel
 }
@@ -56,7 +56,7 @@ pub fn render(t: u128, scene: &Scene, buf: &mut [u32]) {
             let m = (end.1 - start.1) / (end.0 - start.0); // m = rise/run
             let c = start.1 as f64 - m * start.0 as f64; // c = y - mx
 
-            for x in 0..SCREEN_WIDTH {
+            for x in (start.0 as usize)..(end.0 as usize) {
                 let x = x as f64;
                 let y = m * x + c; // y = mx + c
                 *index_buffer(buf, x, y) = to_rgb((255, 255, 255));
