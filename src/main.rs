@@ -9,6 +9,10 @@ mod consts {
     pub const SCREEN_WIDTH: usize = 1920;
     pub const SCREEN_HEIGHT: usize = 1080;
     pub const STRIDE: u32 = SCREEN_WIDTH as u32;
+    pub const FPS: u32 = 30;
+    pub const FRAME_LENGTH: f64 = 1.0 / FPS as f64;
+    pub const UPS: u32 = FPS; // TODO: Change
+    pub const UPDATE_LENGTH: f64 = 1.0 / UPS as f64;
 }
 
 use points::*;
@@ -16,9 +20,9 @@ use render::*;
 use scene::*;
 use consts::*;
 
-use core::f64; use std::{num::NonZeroU32, u32};
+use core::f64; use std::{num::NonZeroU32, thread, time::{Duration, Instant}, u32};
 
-use softbuffer::{Buffer, Context, Rect, Surface};
+use softbuffer::{Context, Rect, Surface};
 use winit::{self, event_loop::EventLoop, window::Window};
 
 fn main() {
@@ -49,22 +53,36 @@ fn main() {
 
     let mut scene = vec![Object {
         vertices: vec![
-            Point3D(0.0, f64::MAX / 2.0, 0.0),
-            Point3D(f64::MAX / 2.0, -f64::MAX / 2.0, 0.0),
-            Point3D(-f64::MAX / 2.0, -f64::MAX / 2.0, 0.0),
+            Point3D{x: 0.0, y: f64::MAX / 2.0, z: 0.0},
+            Point3D{x: f64::MAX / 2.0, y: -f64::MAX / 2.0, z: 0.0},
+            Point3D{x: -f64::MAX / 2.0, y: -f64::MAX / 2.0, z: 0.0},
         ],
         edges: vec![
-            (Point3D(0.0, f64::MAX / 2.0, 0.0), Point3D(f64::MAX / 2.0, -f64::MAX / 2.0, 0.0)),
-            (Point3D(f64::MAX / 2.0, -f64::MAX / 2.0, 0.0), Point3D(-f64::MAX / 2.0, -f64::MAX / 2.0, 0.0)),
-            (Point3D(-f64::MAX / 2.0, -f64::MAX / 2.0, 0.0), Point3D(0.0, f64::MAX / 2.0, 0.0))
+            (Point3D{x: 0.0, y: f64::MAX / 2.0, z: 0.0}, Point3D{x: f64::MAX / 2.0, y: -f64::MAX / 2.0, z: 0.0}),
+            (Point3D{x: f64::MAX / 2.0, y: -f64::MAX / 2.0, z: 0.0}, Point3D{x: -f64::MAX / 2.0, y: -f64::MAX / 2.0, z: 0.0}),
+            (Point3D{x: -f64::MAX / 2.0, y: -f64::MAX / 2.0, z: 0.0}, Point3D{x: 0.0, y: f64::MAX / 2.0, z: 0.0})
         ],
+        faces: vec![
+            (Point3D{x: 0.0, y: f64::MAX / 2.0, z: 0.0},
+            Point3D{x: f64::MAX / 2.0, y: -f64::MAX / 2.0, z: 0.0},
+            Point3D{x: -f64::MAX / 2.0, y: -f64::MAX / 2.0, z: 0.0})
+        ]
     }];
 
     loop {
         let mut sbuffer = surface.buffer_mut().expect("Couldn't create buffer");
-        // set_scene(t, &mut scene);
+
+        let now = Instant::now();
+
         render(t, &scene, &mut *sbuffer);
         t += 1;
+
+        let elapsed = now.elapsed();
+        let remaining = if Duration::from_secs_f64(UPDATE_LENGTH) > elapsed { Duration::from_secs_f64(UPDATE_LENGTH) - elapsed } else {
+            eprintln!("fps < {FPS}");
+            Duration::ZERO
+        };
+        thread::sleep(remaining);
 
         sbuffer
             .present_with_damage(&[Rect {

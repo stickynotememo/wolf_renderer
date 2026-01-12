@@ -7,12 +7,20 @@ pub struct Object {
     // Every vertex in edges must have a corresponding vertex in vertices
     pub vertices: Vec<Point3D>,
     pub edges: Vec<(Point3D, Point3D)>,
+    pub faces: Vec<(Point3D, Point3D, Point3D)>,
 }
 
 pub type Scene = Vec<Object>;
 
 pub fn set_scene(t: u128, scene: &mut Scene) {
     for obj in scene {
-        obj.vertices[0] = Point3D(f64::MAX / 2.0, f64::MAX / 2.0, 1.0_f64.max(t as f64 / 100.0));
+        for vertex in obj.vertices.iter_mut() {
+            vertex.z += 1.0;
+        }
+
+        for edge in obj.edges.iter_mut() {
+            edge.0.z += 1.0;
+            edge.1.z += 1.0;
+        }
     }
 }
