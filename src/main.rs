@@ -75,7 +75,7 @@ fn main() {
         let elapsed = now.elapsed(); // Timing operations
         dt += elapsed;
         let remaining = if Duration::from_secs_f64(UPDATE_LENGTH) > elapsed { Duration::from_secs_f64(UPDATE_LENGTH) - elapsed } else {
-            eprintln!("fps < {FPS}");
+            eprintln!("fps: {}", 1.0 / (elapsed.as_secs_f64()));
             Duration::ZERO
         };
         thread::sleep(remaining);
