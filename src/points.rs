@@ -7,22 +7,21 @@ pub struct Point2D {
     pub x: f64,
     pub y: f64
 }
-
 #[derive(Debug, Clone, Copy)]
 pub struct Point3D {
     pub x: f64, pub y: f64, pub z: f64
 }
 
+/// `object::update()` MUST be run on every modification of `vertices`
 #[derive(Debug)]
 pub struct Object {
-    // Invariants:
-    // Every vertex in edges must have a corresponding vertex in vertices
-    pub vertices: Vec<Point3D>,
+    pub vertices: Vec<Point3D>, 
+
     pub edges: Vec<(Point3D, Point3D)>,
     pub edge_indices: Vec<(usize, usize)>,
+
     pub faces: Vec<(Point3D, Point3D, Point3D)>,
     pub face_indices: Vec<(usize, usize, usize)>,
-    // the update() function
 }
 
 impl Object {
