@@ -7,6 +7,7 @@ pub struct Point2D {
     pub x: f64,
     pub y: f64
 }
+
 #[derive(Debug, Clone, Copy)]
 pub struct Point3D {
     pub x: f64, pub y: f64, pub z: f64
@@ -117,5 +118,11 @@ impl Point2D {
             (f64::powf(p2.x.max(p1.x) - p1.x.min(p2.x), 2.0)
                 + f64::powf(p2.y.max(p1.y) - p1.y.min(p2.y), 2.0)) as f64,
         )
+    }
+
+    pub fn gradient(self, p2: &Point2D) -> f64 {
+        let p1 = self;
+        
+        (p2.y - p1.y) / (p2.x - p1.x)
     }
 }
