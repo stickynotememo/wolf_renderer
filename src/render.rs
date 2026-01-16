@@ -63,7 +63,7 @@ pub fn render(scene: &Scene, buf: &mut [u32]) {
         }
 
 
-        for (p0, p1, p2) in &obj.faces {
+        for (p0, p1, p2) in &obj.triangles {
 
             let (p0, p1, p2) = (p0.to_screen_coordinates(), p1.to_screen_coordinates(), p2.to_screen_coordinates());
             // Finds the leftmost and rightmost points on the triangle and only iterates over them.
@@ -74,12 +74,12 @@ pub fn render(scene: &Scene, buf: &mut [u32]) {
                 for y in vertical_range.clone() {
                     let p = Point2D{x: x as f64, y: y as f64};
 
-                    let area = 0.5 *(-p1.y*p2.x + p0.y*(-p1.x + p2.x) + p0.x*(p1.y - p2.y) + p1.x*p2.y);
-                    let s = 1.0/(2.0*area)*(p0.y*p2.x - p0.x*p2.y + (p2.y - p0.y)*p.x + (p0.x - p2.x)*p.y);
-                    let t = 1.0/(2.0*area)*(p0.x*p1.y - p0.y*p1.x + (p0.y - p1.y)*p.x + (p1.x - p0.x)*p.y);
+                    // adapted from https://stackoverflow.com/a/14382692
+                    let area = 0.5 * (-p1.y * p2.x + p0.y * (-p1.x + p2.x) + p0.x * (p1.y - p2.y) + p1.x * p2.y);
+                    let s = 1.0/(2.0 * area) * (p0.y * p2.x - p0.x * p2.y + (p2.y - p0.y) * p.x + (p0.x - p2.x) * p.y);
+                    let t = 1.0/(2.0 * area) * (p0.x * p1.y - p0.y * p1.x + (p0.y - p1.y) * p.x + (p1.x - p0.x) * p.y);
 
                     if s > 0.0 && t > 0.0 && 1.0 - s - t > 0.0 {
-                        // dbg!(p);
                         *index_buffer(buf, p) = to_rgb((255, 255, 255));
                     };
                 }

@@ -59,7 +59,7 @@ fn main() {
             (0, 1), (1, 2), (2, 0)
         ],
         vec![
-            (0, 1, 2)
+            vec![0, 1, 2]
         ])];
 
     let mut dt = Duration::ZERO;
