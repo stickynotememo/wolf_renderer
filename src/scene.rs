@@ -1,17 +1,7 @@
 use core::f64;
 use std::time::Duration;
 use crate::points::Point3D;
-
-#[derive(Debug)]
-pub struct Object {
-    // Invariants:
-    // Every vertex in edges must have a corresponding vertex in vertices
-    pub vertices: Vec<Point3D>,
-    pub edges: Vec<(Point3D, Point3D)>,
-    pub faces: Vec<(Point3D, Point3D, Point3D)>,
-}
-
-pub type Scene = Vec<Object>;
+use crate::points::Scene;
 
 pub fn set_scene(dt: Duration, scene: &mut Scene) {
     for obj in scene {
@@ -19,9 +9,6 @@ pub fn set_scene(dt: Duration, scene: &mut Scene) {
             vertex.z += 1.0;
         }
 
-        for edge in obj.edges.iter_mut() {
-            edge.0.z += 1.0;
-            edge.1.z += 1.0;
-        }
+        obj.update();
     }
 }

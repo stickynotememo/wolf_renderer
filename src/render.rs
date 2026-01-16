@@ -1,6 +1,6 @@
 use crate::consts::*;
 use crate::points::Point2D;
-use crate::scene::Scene;
+use crate::Scene;
 
 type Pixel = u32;
 type Subpixels = (u8, u8, u8);
@@ -60,6 +60,10 @@ pub fn render(scene: &Scene, buf: &mut [u32]) {
                 let y = m * x + c; // y = mx + c
                 *index_buffer(buf, Point2D { x, y }) = to_rgb((255, 255, 255));
             }
+        }
+
+        for faces in &obj.faces {
+
         }
 
     }

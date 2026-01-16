@@ -49,23 +49,18 @@ fn main() {
         )
         .expect("Couldn't resize surface");
 
-    let mut scene = vec![Object {
-        vertices: vec![
+    let mut scene = vec![Object::new(
+        vec![
             Point3D{x: 0.0, y: f64::MAX / 2.0, z: 0.0},
             Point3D{x: f64::MAX / 2.0, y: -f64::MAX / 2.0, z: 0.0},
             Point3D{x: -f64::MAX / 2.0, y: -f64::MAX / 2.0, z: 0.0},
         ],
-        edges: vec![
-            (Point3D{x: 0.0, y: f64::MAX / 2.0, z: 0.0}, Point3D{x: f64::MAX / 2.0, y: -f64::MAX / 2.0, z: 0.0}),
-            (Point3D{x: f64::MAX / 2.0, y: -f64::MAX / 2.0, z: 0.0}, Point3D{x: -f64::MAX / 2.0, y: -f64::MAX / 2.0, z: 0.0}),
-            (Point3D{x: -f64::MAX / 2.0, y: -f64::MAX / 2.0, z: 0.0}, Point3D{x: 0.0, y: f64::MAX / 2.0, z: 0.0})
+        vec![
+            (0, 1), (1, 2), (2, 0)
         ],
-        faces: vec![
-            (Point3D{x: 0.0, y: f64::MAX / 2.0, z: 0.0},
-            Point3D{x: f64::MAX / 2.0, y: -f64::MAX / 2.0, z: 0.0},
-            Point3D{x: -f64::MAX / 2.0, y: -f64::MAX / 2.0, z: 0.0})
-        ]
-    }];
+        vec![
+            (0, 1, 2)
+        ])];
 
     let mut dt = Duration::ZERO;
 
