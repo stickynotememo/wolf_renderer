@@ -1,5 +1,5 @@
 use crate::consts::*;
-use crate::points::{Point2D, Point3D};
+use crate::points::Point2D;
 use crate::Scene;
 
 type Pixel = u32;
@@ -53,7 +53,7 @@ pub fn render(scene: &Scene, buf: &mut [u32]) {
             }
 
             let m = (end.y - start.y) / (end.x - start.x); // m = rise/run
-            let c = start.y as f64 - m * start.x as f64; // c = y - mx
+            let c = start.y - m * start.x; // c = y - mx
 
             for x in (start.x.min(end.x) as usize)..=(end.x.max(start.x) as usize) {
                 let x = x as f64;

@@ -1,4 +1,3 @@
-use std::collections::HashMap;
 
 use crate::consts::*;
 
@@ -53,17 +52,17 @@ impl Object {
         };
 
         for (i_start, i_end) in ret.edge_indices.iter() {
-            ret.edges.push((ret.vertices[*i_start].clone(), ret.vertices[*i_end].clone()));
+            ret.edges.push((ret.vertices[*i_start], ret.vertices[*i_end]));
         }
 
         for (i_one, i_two, i_three /* The three vertices of the triangle */) in ret.triangle_indices.iter() {
-            ret.triangles.push((ret.vertices[*i_one].clone(), ret.vertices[*i_two].clone(), ret.vertices[*i_three].clone()));
+            ret.triangles.push((ret.vertices[*i_one], ret.vertices[*i_two], ret.vertices[*i_three]));
         }
 
         ret
     }
 
-    fn ear_clip(polygon: &Vec<Point3D>) -> Vec<(Point3D, Point3D, Point3D)> {
+    fn ear_clip(_polygon: &Vec<Point3D>) -> Vec<(Point3D, Point3D, Point3D)> {
 
         todo!()
     }
@@ -74,7 +73,7 @@ impl Object {
         // OPTIMISATION: Do we need to re-initalise self.{edges, faces, triangles} every execution?
         self.edges = vec![];
         for (i_start, i_end) in self.edge_indices.iter() {
-            self.edges.push((self.vertices[*i_start].clone(), self.vertices[*i_end].clone()));
+            self.edges.push((self.vertices[*i_start], self.vertices[*i_end]));
         }
 
         self.faces = vec![];
@@ -84,10 +83,10 @@ impl Object {
 
         self.triangles = vec![];
         for face in self.faces.iter() {
-            self.triangles.append(&mut Self::ear_clip(&face));
+            self.triangles.append(&mut Self::ear_clip(face));
         }
         for (i_one, i_two, i_three /* The three vertices of the triangle */) in self.triangle_indices.iter() {
-            self.triangles.push((self.vertices[*i_one].clone(), self.vertices[*i_two].clone(), self.vertices[*i_three].clone()));
+            self.triangles.push((self.vertices[*i_one], self.vertices[*i_two], self.vertices[*i_three]));
         }
     }
 }
@@ -147,8 +146,8 @@ impl Point2D {
         // Pythagorean formula
         // TODO: use hypot function
         f64::sqrt(
-            (f64::powf(p2.x.max(p1.x) - p1.x.min(p2.x), 2.0)
-                + f64::powf(p2.y.max(p1.y) - p1.y.min(p2.y), 2.0)) as f64,
+            f64::powf(p2.x.max(p1.x) - p1.x.min(p2.x), 2.0)
+                + f64::powf(p2.y.max(p1.y) - p1.y.min(p2.y), 2.0),
         )
     }
 

@@ -69,7 +69,7 @@ fn main() {
 
         let now = Instant::now();
 
-        render( &scene, &mut *sbuffer);
+        render( &scene, &mut sbuffer);
         set_scene(dt, &mut scene);
 
         let elapsed = now.elapsed(); // Timing operations
